@@ -58,7 +58,7 @@ namespace GmailNotifierReplacement
                     var from = author.Element(ns + "email").Value;
                     var authorName = author.Element(ns + "name");
                     if (authorName != null && !string.IsNullOrEmpty(authorName.Value))
-                        from = authorName.Value;
+                        from = authorName.Value; //optionally + "<" + from + ">";
 
                     var preview = entry.Element(ns + "summary").Value;
                     if (preview.Length > 80)
@@ -67,7 +67,8 @@ namespace GmailNotifierReplacement
                     yield return new EmailPreview
                     {
                         Date = date,
-                        From = author.Element(ns + "name").Value,
+                        From = from,
+                        Email = author.Element(ns + "email").Value,
                         Subject = entry.Element(ns + "title").Value,
                         Preview = preview
                     };

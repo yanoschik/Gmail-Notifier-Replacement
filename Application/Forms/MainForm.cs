@@ -38,6 +38,18 @@ namespace GmailNotifierReplacement
         private AboutForm aboutForm;
         private OptionsForm optionsForm;
 
+        // Notification baloons
+        private enum NotificationType
+        {
+          NEW_MAIL,
+          LAST_MAIL
+        }
+        private enum MessageType
+        {
+          DEFAULT,
+          WITH_DATE
+        }
+
         // Constructor
         public MainForm()
         {
@@ -129,11 +141,7 @@ namespace GmailNotifierReplacement
                     notifyIcon.Icon = SystrayIcons.SystrayIconError;
                     notifyIcon.Text = "Please set username/password in Options";
                     if (showLast)
-                    {
-                      notifyIcon.BalloonTipTitle = "Gmail";
-                      notifyIcon.BalloonTipText = "Please set username/password in Options";
-                      notifyIcon.ShowBalloonTip(notificationDelay);
-                    }
+                        ShowBaloonTip("Gmail", "Please set username/password in Options");
                     return;
                 }
 
@@ -157,25 +165,13 @@ namespace GmailNotifierReplacement
                     var newEmails = atomMailChecker.GetNewEmails(lastMail);
 
                     if (showLast)
-                    {
-                        notifyIcon.BalloonTipTitle = "Last mail from:  " + newEmails.First().From;
-                        notifyIcon.BalloonTipText = "[Subject:] " + newEmails.First().Subject + Environment.NewLine + "[Preview:] " + newEmails.First().Preview;
-                        notifyIcon.ShowBalloonTip(notificationDelay);
-                    }
+                        ShowBaloonTip(newEmails.First(), NotificationType.LAST_MAIL, MessageType.WITH_DATE);
                     else
                     {
                         if (newEmails.Count() == 1)
-                        {
-                            notifyIcon.BalloonTipTitle = "New mail from:  " + newEmails.Single().From;
-                            notifyIcon.BalloonTipText = "[Subject:] " + newEmails.Single().Subject + Environment.NewLine + "[Preview:] " + newEmails.Single().Preview;
-                            notifyIcon.ShowBalloonTip(notificationDelay);
-                        }
+                            ShowBaloonTip(newEmails.Single(), NotificationType.NEW_MAIL, MessageType.WITH_DATE);
                         if (newEmails.Count() > 1)
-                        {
-                            notifyIcon.BalloonTipTitle = "You've got mail";
-                            notifyIcon.BalloonTipText = string.Format("You have {0} new emails", unreadCount);
-                            notifyIcon.ShowBalloonTip(notificationDelay);
-                        }
+                            ShowBaloonTip("You've got mail", string.Format("You have {0} new emails", unreadCount));
                     }
                 }
                 else
@@ -204,6 +200,42 @@ namespace GmailNotifierReplacement
                         notifyIcon.Text = "Check credentials and make sure to use an app-specific password";
                 }
             }
+        }
+
+        // Prepares and shows the BaloonTip notification
+        private void ShowBaloonTip(String inTitle, String inText)
+        {
+          notifyIcon.BalloonTipTitle = inTitle;
+          notifyIcon.BalloonTipText = inText;
+          notifyIcon.ShowBalloonTip(notificationDelay);
+        }
+        private void ShowBaloonTip(EmailPreview inEmail, NotificationType NType, MessageType MType)
+        {
+          switch (NType)
+          {
+            case NotificationType.LAST_MAIL:
+              notifyIcon.BalloonTipTitle = "Last mail from:  ";
+              break;
+            case NotificationType.NEW_MAIL:
+              notifyIcon.BalloonTipTitle = "New mail from:  ";
+              break;
+            default:
+              throw new ArgumentOutOfRangeException();
+          }
+          notifyIcon.BalloonTipTitle += inEmail.From;
+          switch (MType)
+          {
+            case MessageType.DEFAULT:
+              notifyIcon.BalloonTipText = String.Empty;
+              break;
+            case MessageType.WITH_DATE:
+              notifyIcon.BalloonTipText = "[Date:] " + inEmail.Date + Environment.NewLine;
+              break;
+            default:
+              throw new ArgumentOutOfRangeException();
+          }
+          notifyIcon.BalloonTipText += "[Subject:] " + inEmail.Subject + Environment.NewLine + "[Preview:] " + inEmail.Preview;
+          notifyIcon.ShowBalloonTip(notificationDelay);
         }
 
         // This is what checks mail regularly
