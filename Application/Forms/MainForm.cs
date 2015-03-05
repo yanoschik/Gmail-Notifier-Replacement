@@ -33,6 +33,7 @@ namespace GmailNotifierReplacement
 
         // The ATOM client
         private AtomMailChecker atomMailChecker;
+        private bool fetchSuccess;
 
         // Forms
         private AboutForm aboutForm;
@@ -46,6 +47,7 @@ namespace GmailNotifierReplacement
 
             // Load the configuration
             LoadConfig();
+            fetchSuccess = false;
 
             // Initialize the ATOM client
             if (ConfigurationManager.AppSettings["AtomFeedUrl"].ToString() == string.Empty)
@@ -140,6 +142,7 @@ namespace GmailNotifierReplacement
                 atomMailChecker.Refresh(username, password);
                 unreadCount = atomMailChecker.GetUnreadEmailCount();
                 Logger.Debug("Unread mail count: " + unreadCount);
+                fetchSuccess = true;
 
                 // Update the icon
                 notifyIcon.Icon = unreadCount > 0 ? SystrayIcons.SystrayIconBlue : SystrayIcons.SystrayIconFaded;
@@ -189,9 +192,12 @@ namespace GmailNotifierReplacement
             catch (Exception x)
             {
                 Logger.Warn("Error while checking mail", x);
+                fetchSuccess = false;
 
                 notifyIcon.Icon = SystrayIcons.SystrayIconError;
                 notifyIcon.Text = "Couldn't check mail";
+                notifyIcon.BalloonTipTitle = "Error";
+                notifyIcon.BalloonTipText = "n/a";
 
                 var webException = x as WebException;
                 if (webException != null)
@@ -300,7 +306,7 @@ namespace GmailNotifierReplacement
         private void notifyIcon_BalloonTipClicked(object sender, EventArgs e)
         {
             Logger.Debug("Baloon tooltip: clicked");
-            if (unreadCount > 0)
+            if (unreadCount > 0 && fetchSuccess)
             {
                 Process.Start(gmailUrl);
             }
