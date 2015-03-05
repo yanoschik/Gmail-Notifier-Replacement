@@ -116,6 +116,7 @@ namespace GmailNotifierReplacement
         private void CheckMail(bool showLast = false)
         {
             Logger.Debug("Checking mail...");
+            unreadCount = 0;
 
             try
             {
@@ -192,6 +193,8 @@ namespace GmailNotifierReplacement
 
                 notifyIcon.Icon = SystrayIcons.SystrayIconError;
                 notifyIcon.Text = "Couldn't check mail";
+                notifyIcon.BalloonTipTitle = "Error";
+                notifyIcon.BalloonTipText = "Couldn't check mail";
 
                 var webException = x as WebException;
                 if (webException != null)
